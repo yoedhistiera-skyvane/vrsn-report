@@ -1,0 +1,311 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VRSN Funnel Deep Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1D1D1D;--surf:#212121;--paper:#F2F0F0;--lime:#B8DE55;--coral:#F36D4E;--line:#e4e1dc;--mute:#6f6c66}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;color:var(--ink);background:var(--paper);padding:34px 18px}
+.wrap{max-width:1000px;margin:0 auto}
+.kicker{display:flex;align-items:center;gap:10px;font-family:'Archivo';font-weight:800;text-transform:uppercase;letter-spacing:2px;font-size:12px;color:var(--mute);margin-bottom:14px}
+.kicker .sq{width:16px;height:16px;border-radius:4px;background:var(--lime)}
+h1{font-family:'Archivo';font-weight:900;text-transform:uppercase;font-size:38px;line-height:1.05;letter-spacing:-.5px;margin-bottom:8px}
+.sub{color:var(--mute);font-size:14px;margin-bottom:24px;line-height:1.55} .sub b{color:var(--ink)}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px 30px;margin-bottom:20px}
+h2{display:flex;align-items:center;gap:9px;font-family:'Archivo';font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--ink);margin-bottom:16px;font-weight:800}
+h2::before{content:"";width:13px;height:13px;border-radius:3px;background:var(--lime);flex:none}
+.lead{font-size:15px;color:#4a4843;margin:-4px 0 18px}
+.tldr{background:var(--lime);border-radius:16px;padding:22px 26px;margin-bottom:20px;color:var(--ink)}
+.tldr .t{font-family:'Archivo';font-weight:900;text-transform:uppercase;letter-spacing:1px;font-size:14px;margin-bottom:8px}
+.tldr p{font-size:16.5px;line-height:1.6;font-weight:500} .tldr b{font-weight:800}
+.exec{background:var(--ink);color:#fff;border:none}
+.exec h2{color:#fff} .exec h2::before{background:var(--lime)}
+.exec ul{list-style:none} .exec li{position:relative;padding-left:26px;margin-bottom:13px;font-size:15.5px;line-height:1.55;color:#e8e6e2}
+.exec li::before{content:"";position:absolute;left:0;top:8px;width:9px;height:9px;border-radius:2px;background:var(--lime)}
+.exec li b{color:#fff} .exec .hl{color:var(--lime);font-weight:800}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 17px}
+.kpi .lab{font-family:'Archivo';font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--mute);font-weight:700}
+.kpi .val{font-family:'Archivo';font-size:28px;font-weight:900;margin-top:4px;letter-spacing:-.5px}
+.kpi .chg{font-size:12px;font-weight:700;margin-top:2px}
+.up{color:#4d7c0f}.dn{color:var(--coral)}.flat{color:var(--mute)}
+.tag{display:inline-block;padding:3px 11px;border-radius:20px;font-family:'Archivo';font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+.tg{background:var(--lime);color:var(--ink)}.tb{background:var(--coral);color:var(--ink)}.tn{background:#e7e4df;color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 6px;border-bottom:2px solid var(--line);font-family:'Archivo';font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--mute)}
+td{padding:8px 6px;border-bottom:1px solid #f1efec;font-variant-numeric:tabular-nums}
+td.d{font-weight:700;color:var(--ink);font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+.good{color:#4d7c0f;font-weight:800}.bad{color:var(--coral);font-weight:800}.mid{color:#b45309;font-weight:800}
+.legend{font-size:12px;color:var(--mute);margin-top:12px}
+.legend i{font-style:normal;display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:middle;margin:0 5px 0 14px}
+.note{font-size:12.5px;color:var(--mute);font-style:italic;margin-top:12px}
+.callout{border-radius:14px;padding:22px 24px;margin-bottom:16px}
+.callout.red{background:#fdeeeb;border:1px solid #f9c9bf} .callout.amber{background:#f6f7ee;border:1px solid #dfe6bf}
+.callout .ct{font-family:'Archivo';font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--coral);margin-bottom:8px}
+.callout.amber .ct{color:#5c7a16}
+.callout h3{font-family:'Archivo';font-weight:800;font-size:20px;margin-bottom:10px}
+.callout p{font-size:14px;color:#4a4843;margin-bottom:9px}
+.quote{background:#fff;border-left:3px solid var(--coral);padding:8px 14px;margin:7px 0;font-size:13.5px;color:#7a2a1a;border-radius:0 8px 8px 0}
+.callout.amber .quote{border-left-color:#84994a;color:#46540f}
+.fbox{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0 10px}
+.fb{background:#fff;border-radius:10px;padding:12px 14px;font-size:13px;color:#4a4843}
+.fbl{font-family:'Archivo';font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--ink);margin-bottom:4px}
+.confline{font-size:12.5px;font-style:italic;color:var(--mute)}
+.lp{border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:16px;background:#fff}
+.lp-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lp-emoji{font-family:'Archivo';font-size:10px;font-weight:900;background:var(--ink);color:#fff;padding:3px 8px;border-radius:6px;letter-spacing:.5px}
+.lp-name{font-family:ui-monospace,Menlo,monospace;font-size:18px;font-weight:700}
+.conf{margin-left:auto;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px}
+.cf-hi{background:#eaf3d6;color:#4d7c0f} .cf-md{background:#f3ede2;color:#92400e}
+.lp-sub{font-size:13px;color:var(--mute);margin:6px 0 14px;font-weight:600}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.chip{background:var(--paper);border-radius:10px;padding:8px 10px;text-align:center}
+.chip .cl{font-family:'Archivo';font-size:9px;text-transform:uppercase;letter-spacing:.3px;color:var(--mute);font-weight:700}
+.chip .cv{font-family:'Archivo';font-size:17px;font-weight:900;margin-top:2px}
+.ev{background:var(--paper);border-radius:10px;padding:11px 15px;font-size:13.5px;color:#4a4843;margin-bottom:12px}
+.evl{display:block;font-family:'Archivo';font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--ink);margin-bottom:4px}
+.lp-body{font-size:14px;color:#4a4843;margin-bottom:12px}
+.lp-fix{border-left:4px solid var(--lime);background:var(--paper);border-radius:0 10px 10px 0;padding:12px 16px}
+.fixlab{font-family:'Archivo';font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--ink);margin-bottom:8px}
+.lp-fix ul{list-style:none} .lp-fix li{margin-bottom:10px;font-size:13.5px;color:var(--ink)}
+.lp-fix li b{display:block;margin-bottom:2px} .lp-fix .why{display:block;font-size:12.5px;color:var(--mute)}
+.prio td:first-child{font-family:'Archivo';font-weight:900;color:var(--ink);text-align:center;width:34px;font-size:16px}
+.eff{display:inline-block;padding:1px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.e-lo{background:var(--lime);color:var(--ink)}.e-md{background:#f3ede2;color:#92400e}
+ul.clean{margin-left:18px} ul.clean li{margin-bottom:8px;color:#4a4843}
+.foot{text-align:center;color:var(--mute);font-size:12px;margin:14px 0 6px}
+</style></head><body><div class="wrap">
+
+<div class="kicker"><span class="sq"></span>VRSN performance report. From the live ad account and landing pages.</div>
+<h1>Funnel and Landing Page Deep Dive</h1>
+<div class="sub">Account <b>[vrsn]</b>. Meta CBO campaigns. Window <b>1 to 10 June 2026</b> (10 days). Report generated 11 June 2026.<br>
+<b>Volume.</b> Spend $13,309 . Revenue $17,425 . 183,813 impressions . 6,789 link clicks . 5,845 landing-page views . 470 add-to-carts . 168 purchases.<br>
+<b>Headline rates.</b> Blended ROAS 1.31 (trend 1.11 to 1.42) . Cost per purchase $79 . AOV $104 . CTR 3.7% . Click to view 86% . View to cart 8.0% . Cart to buy 36% . CVR 2.87%.<br>
+<b>Mix.</b> PDPs took 38% of spend (ROAS 1.33), Stories 38% (ROAS 1.26), the rest split across Quiz, Listicle and the excluded test. Best day Jun 10 at 1.89 ROAS, softest Jun 3 at 0.73.<br>
+<b>Scope.</b> 10 active funnels: 4 PDPs, 4 advertorial Stories, Quiz and Listicle now off, across 345 ad variants. New-site TOF relaunch test excluded per request.<br>
+<b>Source.</b> Meta daily ad-level export (966 rows) plus a live read of all 10 landing pages on 11 June 2026. Currency USD.</div>
+
+<div class="tldr">
+<div class="t">TLDR</div>
+<p>The account is <b>working and improving</b> (ROAS 1.11 to 1.42 over 10 days, Jun 10 hit 1.89). The next gains are <b>on the pages, not in the ad account</b>. Two cheap fixes touch every funnel: <b>kill the self-contradicting shipping text on the PDPs</b>, and <b>stop routing advertorials into the generic Legacy PDP</b>. Then rebuild the thin Barefoot page, fix Foot Pain's budget split where one weak ad eats it, and scale the Nurse story.</p>
+</div>
+
+<div class="kpis">
+<div class="kpi"><div class="lab">Spend</div><div class="val">$13.3k</div><div class="chg flat">10 days</div></div>
+<div class="kpi"><div class="lab">Blended ROAS</div><div class="val">1.31</div><div class="chg up">UP 1.11 to 1.42</div></div>
+<div class="kpi"><div class="lab">Purchases</div><div class="val">168</div><div class="chg flat">$79 cost / purchase</div></div>
+<div class="kpi"><div class="lab">Cart abandon</div><div class="val">64%</div><div class="chg dn">biggest pooled leak</div></div>
+</div>
+
+<div class="card exec">
+<h2>Executive summary</h2>
+<ul>
+<li><b>Trend is up.</b> <span class="hl">ROAS 1.11 to 1.42</span> across the three windows of the period, cost per purchase down from about $97 to $71. The kills (Quiz, Listicle) were correct.</li>
+<li><b>The biggest leak is the cart, not the click.</b> The hook and landing step are healthy, but <span class="hl">64% of carts never purchase</span> and only 8% of visitors add to cart. That is where the money is.</li>
+<li><b>Finding A.</b> Every PDP shows "shipping delayed 2-3 weeks" and "delivers in 5-8 days" on the same screen. A trust break at the decision point. A 10 minute fix that touches all four PDPs.</li>
+<li><b>Finding B.</b> All four advertorials route to the generic "VRSN - Premium Product" page and show a "$135/pair" price against a $79 entry price. Message-match breaks where the Story funnel already leaks.</li>
+<li><b>It is page-level and ad-level, not fatigue.</b> Ad frequency is low everywhere (1.0 to 1.3), so nothing is burnt out. Barefoot is the thinnest page and converts worst, Orthotics-Exit converts fine but its hook is weakest, and Foot Pain is being drained by a single 0.77-ROAS ad that CBO over-funded. Each fix below is tied to the number that motivates it.</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>1. The 10 days at a glance</h2>
+<div class="lead">After a soft, low-spend open and the new LP test launching on <b>3 June</b>, the account found its footing. ROAS climbed and <b>Jun 10 reached 1.89</b>, the best day. (Jun 2 at 7.2 is a $55-spend outlier, axis-clipped.)</div>
+<svg viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit"><text x="58" y="16" font-size="10" fill="#6f6c66">Bars: daily spend (left axis). Line: ROAS (right axis). Dot is lime above breakeven, coral below.</text><line x1="58" y1="314.0" x2="838" y2="314.0" stroke="#e4e1dc"/><text x="844" y="317.0" font-size="10" fill="#6f6c66">0.0</text><line x1="58" y1="259.2" x2="838" y2="259.2" stroke="#e4e1dc"/><text x="844" y="262.2" font-size="10" fill="#6f6c66">0.5</text><line x1="58" y1="204.4" x2="838" y2="204.4" stroke="#e4e1dc"/><text x="844" y="207.4" font-size="10" fill="#6f6c66">1.0</text><line x1="58" y1="149.6" x2="838" y2="149.6" stroke="#e4e1dc"/><text x="844" y="152.6" font-size="10" fill="#6f6c66">1.5</text><line x1="58" y1="94.8" x2="838" y2="94.8" stroke="#e4e1dc"/><text x="844" y="97.8" font-size="10" fill="#6f6c66">2.0</text><line x1="58" y1="40.0" x2="838" y2="40.0" stroke="#e4e1dc"/><text x="844" y="43.0" font-size="10" fill="#6f6c66">2.5</text><text x="50" y="317.0" font-size="10" fill="#6f6c66" text-anchor="end">$0</text><text x="50" y="180.0" font-size="10" fill="#6f6c66" text-anchor="end">$1.1k</text><text x="50" y="43.0" font-size="10" fill="#6f6c66" text-anchor="end">$2.2k</text><rect x="73.6" y="284.5" width="46.8" height="29.5" rx="2" fill="#d7d4cf"/><text x="97.0" y="334" font-size="9" fill="#6f6c66" text-anchor="middle">1</text><rect x="151.6" y="307.1" width="46.8" height="6.9" rx="2" fill="#d7d4cf"/><text x="175.0" y="334" font-size="9" fill="#6f6c66" text-anchor="middle">2</text><rect x="229.6" y="181.1" width="46.8" height="132.9" rx="2" fill="#a9a6a0"/><text x="253.0" y="334" font-size="9" fill="#6f6c66" text-anchor="middle">3</text><rect x="307.6" y="77.2" width="46.8" height="236.8" rx="2" fill="#a9a6a0"/><text x="331.0" y="334" font-size="9" fill="#6f6c66" text-anchor="middle">4</text><rect x="385.6" y="62.9" width="46.8" height="251.1" rx="2" fill="#a9a6a0"/><text x="409.0" y="334" font-size="9" fill="#6f6c66" text-anchor="middle">5</text><rect x="463.6" y="105.5" width="46.8" height="208.5" rx="2" fill="#a9a6a0"/><text x="487.0" y="334" font-size="9" fill="#6f6c66" text-anchor="middle">6</text><rect x="541.6" y="73.8" width="46.8" height="240.2" rx="2" fill="#a9a6a0"/><text x="565.0" y="334" font-size="9" fill="#6f6c66" text-anchor="middle">7</text><rect x="619.6" y="108.4" width="46.8" height="205.6" rx="2" fill="#a9a6a0"/><text x="643.0" y="334" font-size="9" fill="#6f6c66" text-anchor="middle">8</text><rect x="697.6" y="124.4" width="46.8" height="189.6" rx="2" fill="#a9a6a0"/><text x="721.0" y="334" font-size="9" fill="#6f6c66" text-anchor="middle">9</text><rect x="775.6" y="157.3" width="46.8" height="156.7" rx="2" fill="#a9a6a0"/><text x="799.0" y="334" font-size="9" fill="#6f6c66" text-anchor="middle">10</text><line x1="58" y1="204.4" x2="838" y2="204.4" stroke="#F36D4E" stroke-width="1" stroke-dasharray="3 3"/><polyline points="97.0,157.3 175.0,40.0 253.0,234.0 331.0,166.0 409.0,175.9 487.0,195.6 565.0,160.6 643.0,182.5 721.0,174.8 799.0,106.9" fill="none" stroke="#1D1D1D" stroke-width="2.5"/><circle cx="97.0" cy="157.3" r="4.5" fill="#B8DE55" stroke="#1D1D1D" stroke-width="1.5"/><text x="97.0" y="147.3" font-size="10" font-weight="800" fill="#1D1D1D" text-anchor="middle" style="paint-order:stroke;stroke:#ffffff;stroke-width:3.5px;stroke-linejoin:round">1.43</text><circle cx="175.0" cy="40.0" r="4.5" fill="#B8DE55" stroke="#1D1D1D" stroke-width="1.5"/><text x="175.0" y="30.0" font-size="10" font-weight="800" fill="#1D1D1D" text-anchor="middle" style="paint-order:stroke;stroke:#ffffff;stroke-width:3.5px;stroke-linejoin:round">7.2</text><circle cx="253.0" cy="234.0" r="4.5" fill="#F36D4E" stroke="#1D1D1D" stroke-width="1.5"/><text x="253.0" y="224.0" font-size="10" font-weight="800" fill="#1D1D1D" text-anchor="middle" style="paint-order:stroke;stroke:#ffffff;stroke-width:3.5px;stroke-linejoin:round">0.73</text><circle cx="331.0" cy="166.0" r="4.5" fill="#B8DE55" stroke="#1D1D1D" stroke-width="1.5"/><text x="331.0" y="156.0" font-size="10" font-weight="800" fill="#1D1D1D" text-anchor="middle" style="paint-order:stroke;stroke:#ffffff;stroke-width:3.5px;stroke-linejoin:round">1.35</text><circle cx="409.0" cy="175.9" r="4.5" fill="#B8DE55" stroke="#1D1D1D" stroke-width="1.5"/><text x="409.0" y="165.9" font-size="10" font-weight="800" fill="#1D1D1D" text-anchor="middle" style="paint-order:stroke;stroke:#ffffff;stroke-width:3.5px;stroke-linejoin:round">1.26</text><circle cx="487.0" cy="195.6" r="4.5" fill="#B8DE55" stroke="#1D1D1D" stroke-width="1.5"/><text x="487.0" y="185.6" font-size="10" font-weight="800" fill="#1D1D1D" text-anchor="middle" style="paint-order:stroke;stroke:#ffffff;stroke-width:3.5px;stroke-linejoin:round">1.08</text><circle cx="565.0" cy="160.6" r="4.5" fill="#B8DE55" stroke="#1D1D1D" stroke-width="1.5"/><text x="565.0" y="150.6" font-size="10" font-weight="800" fill="#1D1D1D" text-anchor="middle" style="paint-order:stroke;stroke:#ffffff;stroke-width:3.5px;stroke-linejoin:round">1.40</text><circle cx="643.0" cy="182.5" r="4.5" fill="#B8DE55" stroke="#1D1D1D" stroke-width="1.5"/><text x="643.0" y="172.5" font-size="10" font-weight="800" fill="#1D1D1D" text-anchor="middle" style="paint-order:stroke;stroke:#ffffff;stroke-width:3.5px;stroke-linejoin:round">1.20</text><circle cx="721.0" cy="174.8" r="4.5" fill="#B8DE55" stroke="#1D1D1D" stroke-width="1.5"/><text x="721.0" y="164.8" font-size="10" font-weight="800" fill="#1D1D1D" text-anchor="middle" style="paint-order:stroke;stroke:#ffffff;stroke-width:3.5px;stroke-linejoin:round">1.27</text><circle cx="799.0" cy="106.9" r="4.5" fill="#B8DE55" stroke="#1D1D1D" stroke-width="1.5"/><text x="799.0" y="96.9" font-size="10" font-weight="800" fill="#1D1D1D" text-anchor="middle" style="paint-order:stroke;stroke:#ffffff;stroke-width:3.5px;stroke-linejoin:round">1.89</text></svg>
+<div class="legend"><i style="background:#d7d4cf"></i>Spend before 3 Jun <i style="background:#a9a6a0"></i>Spend 3 Jun on <i style="background:#1D1D1D;border-radius:50%"></i> ROAS line <i style="background:#B8DE55"></i> dot above breakeven <i style="background:#F36D4E"></i> below</div>
+</div>
+
+<div class="card">
+<h2>2. The trend is real</h2>
+<div class="lead">Three windows, one direction. Driven by cutting the dead weight, the Nurse story maturing, and the relaunch test bedding in.</div>
+<svg viewBox="0 0 880 250" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit"><line x1="60" y1="192.0" x2="840" y2="192.0" stroke="#e4e1dc"/><text x="52" y="195.0" font-size="10" fill="#6f6c66" text-anchor="end">0.0</text><line x1="60" y1="144.5" x2="840" y2="144.5" stroke="#e4e1dc"/><text x="52" y="147.5" font-size="10" fill="#6f6c66" text-anchor="end">0.5</text><line x1="60" y1="97.0" x2="840" y2="97.0" stroke="#e4e1dc"/><text x="52" y="100.0" font-size="10" fill="#6f6c66" text-anchor="end">1.0</text><line x1="60" y1="49.5" x2="840" y2="49.5" stroke="#e4e1dc"/><text x="52" y="52.5" font-size="10" fill="#6f6c66" text-anchor="end">1.5</text><line x1="60" y1="97.0" x2="840" y2="97.0" stroke="#F36D4E" stroke-dasharray="3 3"/><text x="836" y="92.0" font-size="9.5" fill="#F36D4E" text-anchor="end">breakeven</text><rect x="131.5" y="86.5" width="117.0" height="105.5" rx="5" fill="#dcebb0"/><text x="190.0" y="78.5" font-size="18" font-weight="800" fill="#1D1D1D" text-anchor="middle">1.11</text><text x="190.0" y="212.0" font-size="11.5" fill="#6f6c66" text-anchor="middle">Jun 1 to 3</text><rect x="391.5" y="70.4" width="117.0" height="121.6" rx="5" fill="#cbe487"/><text x="450.0" y="62.4" font-size="18" font-weight="800" fill="#1D1D1D" text-anchor="middle">1.28</text><text x="450.0" y="212.0" font-size="11.5" fill="#6f6c66" text-anchor="middle">Jun 4 to 7</text><rect x="651.5" y="57.1" width="117.0" height="134.9" rx="5" fill="#B8DE55"/><text x="710.0" y="49.1" font-size="18" font-weight="800" fill="#1D1D1D" text-anchor="middle">1.42</text><text x="710.0" y="212.0" font-size="11.5" fill="#6f6c66" text-anchor="middle">Jun 8 to 10</text><text x="710.0" y="232.0" font-size="11.5" font-weight="800" fill="#4d7c0f" text-anchor="middle">UP 28% across the period</text></svg>
+</div>
+
+<div class="card">
+<h2>3. Where the funnel actually breaks</h2>
+<div class="lead">The hook and landing step are fine. The money is lost in two places: only <b>8% of visitors add to cart</b>, then <b>64% of carts never buy</b>. That second drop is the largest pooled leak on the account.</div>
+<svg viewBox="0 0 880 250" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit"><text x="170" y="16" font-size="10" fill="#6f6c66">Bar width is volume reaching each stage. Account total, Jun 1 to 10.</text><text x="158" y="71" font-size="12.5" font-weight="600" fill="#1D1D1D" text-anchor="end">Landing-page views</text><rect x="170" y="44" width="580.0" height="46" rx="4" fill="#1D1D1D"/><text x="760.0" y="65" font-size="16" font-weight="800" fill="#1D1D1D">5,845</text><text x="760.0" y="81" font-size="11" fill="#6f6c66">100%</text><text x="460.0" y="112" font-size="11.5" font-weight="800" fill="#F36D4E" text-anchor="middle">DROP 92%</text><text x="158" y="151" font-size="12.5" font-weight="600" fill="#1D1D1D" text-anchor="end">Adds to cart</text><rect x="170" y="124" width="46.6" height="46" rx="4" fill="#8a8782"/><text x="226.6" y="145" font-size="16" font-weight="800" fill="#1D1D1D">470</text><text x="226.6" y="161" font-size="11" fill="#6f6c66">8.0% of views</text><text x="193.3" y="192" font-size="11.5" font-weight="800" fill="#F36D4E" text-anchor="middle">DROP 64%</text><text x="158" y="231" font-size="12.5" font-weight="600" fill="#1D1D1D" text-anchor="end">Purchases</text><rect x="170" y="204" width="16.7" height="46" rx="4" fill="#B8DE55"/><text x="196.7" y="225" font-size="16" font-weight="800" fill="#1D1D1D">168</text><text x="196.7" y="241" font-size="11" fill="#6f6c66">35.7% of carts</text></svg>
+<div class="note">Data hygiene flag: "Checkouts initiated" fired only 77 times versus 168 purchases, which is impossible. The initiate-checkout pixel is mis-firing, so the cart to checkout to purchase split is currently blind. Cart-to-buy is used as the friction proxy throughout.</div>
+</div>
+
+<div class="card">
+<h2>4. Every LP on one screen</h2>
+<div class="lead">The full picture, sorted by funnel type. Read each row left to right as a funnel: hook (CTR), page (view to cart), checkout (cart to buy), and order value (AOV).</div>
+<table>
+<tr><th>Landing page</th><th>Type</th><th>Spend</th><th>ROAS</th><th>AOV</th><th>CTR</th><th>View to cart</th><th>Cart to buy</th><th>CVR</th></tr>
+<tr><td class="d">/travel</td><td>PDP</td><td>$2,142</td><td class="good">1.47</td><td>$99</td><td>5.1%</td><td>10.0%</td><td>33%</td><td>3.28%</td></tr><tr><td class="d">/barefoot</td><td>PDP</td><td>$1,044</td><td class="good">1.57</td><td>$96</td><td>3.7%</td><td>4.6%</td><td>61%</td><td>2.78%</td></tr><tr><td class="d">/ (Legacy)</td><td>PDP</td><td>$1,086</td><td class="mid">1.10</td><td>$92</td><td>3.0%</td><td>9.2%</td><td>30%</td><td>2.71%</td></tr><tr><td class="d">/orthotics-exit</td><td>PDP</td><td>$776</td><td class="bad">0.95</td><td>$105</td><td>2.7%</td><td>8.9%</td><td>32%</td><td>2.82%</td></tr><tr><td class="d">/stories/nurse</td><td>Story</td><td>$1,021</td><td class="good">1.78</td><td>$107</td><td>3.2%</td><td>8.1%</td><td>50%</td><td>4.06%</td></tr><tr><td class="d">/stories/foot-pain</td><td>Story</td><td>$2,027</td><td class="mid">1.01</td><td>$108</td><td>3.9%</td><td>7.5%</td><td>35%</td><td>2.64%</td></tr><tr><td class="d">/stories/orthotics</td><td>Story</td><td>$1,079</td><td class="mid">1.42</td><td>$118</td><td>4.0%</td><td>6.3%</td><td>34%</td><td>2.14%</td></tr><tr><td class="d">/stories/plantar-fasciitis</td><td>Story (off)</td><td>$939</td><td class="bad">1.06</td><td>$91</td><td>5.2%</td><td>4.2%</td><td>50%</td><td>2.12%</td></tr><tr><td class="d">/quiz</td><td>Quiz (off)</td><td>$516</td><td class="bad">0.53</td><td>$91</td><td>3.0%</td><td>3.6%</td><td>50%</td><td>1.78%</td></tr><tr><td class="d">/compare</td><td>Listicle (off)</td><td>$302</td><td class="bad">0.00</td><td>n/a</td><td>3.8%</td><td>4.3%</td><td>0%</td><td>0.00%</td></tr>
+</table>
+<div class="note">Account averages for reference: CTR 3.7%, view to cart 8.0%, cart to buy 36%, CVR 2.87%, AOV $104.</div>
+</div>
+
+<div class="card">
+<h2>5. Creative and budget concentration</h2>
+<div class="lead">Two things the campaign view hides. First, ad <b>frequency is low across every campaign (1.0 to 1.3)</b>, so nothing is burnt out and there is room to scale winners before any refresh. Second, CBO is concentrating budget unevenly, and in one case it is funding a loser.</div>
+<table>
+<tr><th>Top ad by spend</th><th>Funnel</th><th>Spend</th><th>ROAS</th><th>Sales</th></tr>
+<tr><td class="d">Travel 0025</td><td>Travel PDP</td><td>$1,131</td><td class="good">1.52</td><td>16</td></tr><tr><td class="d">Foot Pain Resignation 028</td><td>Foot Pain story</td><td>$962</td><td class="bad">0.77</td><td>7</td></tr><tr><td class="d">Orthotics Story 0024</td><td>Orthotics story</td><td>$694</td><td class="mid">1.15</td><td>8</td></tr><tr><td class="d">Nurse / On-Feet Pro 0048</td><td>Nurse story</td><td>$499</td><td class="good">2.86</td><td>13</td></tr><tr><td class="d">Travel 0042</td><td>Travel PDP</td><td>$497</td><td class="good">1.63</td><td>9</td></tr><tr><td class="d">Barefoot Betrayal 007</td><td>Barefoot PDP</td><td>$457</td><td class="good">1.88</td><td>9</td></tr><tr><td class="d">Static NewTestAngles</td><td>Nurse story</td><td>$378</td><td class="good">2.35</td><td>8</td></tr><tr><td class="d">Foot Pain Resignation 033</td><td>Foot Pain story</td><td>$326</td><td class="good">1.73</td><td>5</td></tr>
+</table>
+<div class="callout red" style="margin-top:16px">
+<div class="ct">BUDGET LEAK. SINGLE AD.</div>
+<h3>One ad is sinking the Foot Pain campaign</h3>
+<p>"Foot Pain Resignation 028" took <b>47% of the Foot Pain budget ($962) at 0.77 ROAS</b>, and in the last 3 days it took <b>39% of spend at 0.00 ROAS</b> (zero sales), while sibling ads 033, 026 and 007 run 1.7 ROAS or better.</p>
+<div class="fbox"><div class="fb"><div class="fbl">Evidence</div>Ad-level export. 028 is the campaign top spender and is below breakeven, while siblings on the same page and angle are profitable.</div><div class="fb"><div class="fbl">Why it matters</div>This is why Foot Pain looks like it collapsed. Not the page (same template as Nurse) and not fatigue (frequency 1.09), but one over-funded dud.</div></div>
+<div class="confline">Confidence: high. Cut or cap 028 and let budget flow to the profitable siblings.</div>
+</div>
+<div class="note">Best individual creatives to lean into and fund harder: Nurse "On-Feet Pro 0048" (2.86 ROAS), the "NewTestAngles" static (2.35) and Barefoot "Betrayal 007" (1.88).</div>
+</div>
+
+<div class="card">
+<h2>6. The two systemic findings</h2>
+<div class="lead">These came from reading the live pages, not the metrics, and each is paired with the evidence behind it and an honest confidence level.</div>
+<div class="callout red">
+<div class="ct">FINDING A. AFFECTS ALL 4 PDPS. 10 MINUTE FIX. HIGHEST ROI.</div>
+<h3>Every PDP contradicts itself on shipping</h3>
+<p>At the add-to-cart moment, all four PDPs show two conflicting delivery promises within a few lines of each other:</p><p><div class="quote">"Due to very high demand, shipping is currently delayed by 2-3 weeks"</div><div class="quote">"Ships to United States. Free shipping. Delivers in 5-8 days"</div></p><p>Pick one message and remove the other across every PDP.</p>
+<div class="fbox"><div class="fb"><div class="fbl">Evidence</div>Read live on travel, barefoot, orthotics-exit and Legacy. Both strings sit near the buy box on all four.</div><div class="fb"><div class="fbl">Why it matters</div>A conflicting delivery promise at the decision point creates doubt at the exact moment of commitment. The account loses 64% of carts (470 add-to-cart, 168 purchases), the single biggest pooled leak.</div></div>
+<div class="confline">Confidence: the contradiction is a verified fact. Its share of the 64% abandonment is a strong hypothesis, because checkout is not instrumented (see the broken pixel note). Validate by fixing it and watching cart-to-buy move.</div>
+</div>
+<div class="callout amber">
+<div class="ct">FINDING B. AFFECTS ALL 4 STORIES. ATTACKS THE STORY CART LEAK.</div>
+<h3>Every advertorial hands traffic to the generic Legacy PDP</h3>
+<p>All four Story CTAs ("View full product details" and "Claim deal") link to <b>/</b>, the Legacy PDP, whose title is "VRSN - Premium Product" and whose hero is the generic "Kills Foot Pain."</p><p><div class="quote">Orthotics story ("I stopped needing orthotics") routes to the generic PDP, while a perfect-match /orthotics-exit ("Ditch the Orthotics") already exists.</div></p><p>Stories also show "From $135.00/pair" on the sticky bar, contradicting the $79 one-pair price.</p>
+<div class="fbox"><div class="fb"><div class="fbl">Evidence</div>CTA href is "/" on all four Stories (read from the page). Story article-view to cart is 6.3% to 7.5%, below the destination PDP own cold rate of 9.2%, so readers leak between article and cart.</div><div class="fb"><div class="fbl">Why it matters</div>A reader primed on a specific angle lands on a generic page and a price that looks 70% higher than entry. Message-match breaks exactly where the funnel already leaks.</div></div>
+<div class="confline">Confidence: the handoff and the price bug are verified facts. That a matched PDP lifts conversion is a test, not a certainty, because orthotics-exit cold cart rate (8.9%) is just under Legacy (9.2%). Run it as an A/B split.</div>
+</div>
+</div>
+
+<div class="card">
+<h2>7. PDP template: completeness tracks add-to-cart</h2>
+<div class="lead">All PDPs share an identical, well-built core ($79 / -47%, $136 two-pair / -54%, free insole, 100-day guarantee, variant pre-selected). They differ in how many trust blocks survived, and that tracks the cart rate. This is a 4-point correlation, suggestive rather than proof, and Orthotics-Exit is the honest exception.</div>
+<table>
+<tr><th>PDP</th><th>Page weight</th><th>Angle 3-block</th><th>Customer / press bar</th><th>Purchase popups</th><th>View to cart</th></tr>
+<tr><td class="d">/travel</td><td>5,184 (fullest)</td><td class="good">yes</td><td class="good">yes</td><td class="good">yes</td><td class="good">10.0%</td></tr>
+<tr><td class="d">/ (Legacy)</td><td>4,422</td><td class="bad">no</td><td class="good">yes</td><td class="good">yes</td><td class="mid">9.2%</td></tr>
+<tr><td class="d">/orthotics-exit</td><td>4,458</td><td class="bad">no</td><td class="bad">no</td><td class="good">yes</td><td class="mid">8.9%</td></tr>
+<tr><td class="d">/barefoot</td><td>4,341 (thinnest)</td><td class="bad">no</td><td class="bad">no</td><td class="bad">no</td><td class="bad">4.6%</td></tr>
+</table>
+<div class="note">Orthotics-Exit proves the rule: its cart rate is fine (8.9%), its problem is the hook (lowest CTR), not the page. Barefoot is both thinnest and lowest cart rate.</div>
+</div>
+
+<div class="card">
+<h2>8. Add-to-cart rate by landing page</h2>
+<div class="lead">PDPs generally out-convert Stories at the cart step, the extra article hop costs the Stories. Barefoot is the clear PDP outlier to fix. The off pages were correctly killed.</div>
+<svg viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:inherit"><text x="180" y="16" font-size="10" fill="#6f6c66">View to add-to-cart rate by LP. Lime beats the 8.0% average, coral is well below it.</text><line x1="638.2" y1="34" x2="638.2" y2="348" stroke="#1D1D1D" stroke-width="1.1" stroke-dasharray="4 3"/><text x="642.2" y="30" font-size="10" fill="#1D1D1D">avg 8.0%</text><text x="168" y="55" font-size="12" fill="#1D1D1D" text-anchor="end">/travel</text><rect x="180" y="40" width="572.7" height="22" rx="3" fill="#B8DE55"/><text x="759.7" y="55" font-size="11.5" font-weight="800" fill="#1D1D1D">10.0%</text><text x="168" y="85" font-size="12" fill="#1D1D1D" text-anchor="end">/ (Legacy)</text><rect x="180" y="70" width="526.9" height="22" rx="3" fill="#B8DE55"/><text x="713.9" y="85" font-size="11.5" font-weight="800" fill="#1D1D1D">9.2%</text><text x="168" y="115" font-size="12" fill="#1D1D1D" text-anchor="end">/orthotics-exit</text><rect x="180" y="100" width="509.7" height="22" rx="3" fill="#B8DE55"/><text x="696.7" y="115" font-size="11.5" font-weight="800" fill="#1D1D1D">8.9%</text><text x="168" y="145" font-size="12" fill="#1D1D1D" text-anchor="end">/stories/nurse</text><rect x="180" y="130" width="463.9" height="22" rx="3" fill="#B8DE55"/><text x="650.9" y="145" font-size="11.5" font-weight="800" fill="#1D1D1D">8.1%</text><text x="168" y="175" font-size="12" fill="#1D1D1D" text-anchor="end">/stories/foot-pain</text><rect x="180" y="160" width="429.5" height="22" rx="3" fill="#8a8782"/><text x="616.5" y="175" font-size="11.5" font-weight="800" fill="#1D1D1D">7.5%</text><text x="168" y="205" font-size="12" fill="#1D1D1D" text-anchor="end">/stories/orthotics</text><rect x="180" y="190" width="360.8" height="22" rx="3" fill="#8a8782"/><text x="547.8" y="205" font-size="11.5" font-weight="800" fill="#1D1D1D">6.3%</text><text x="168" y="235" font-size="12" fill="#1D1D1D" text-anchor="end">/barefoot</text><rect x="180" y="220" width="263.5" height="22" rx="3" fill="#F36D4E"/><text x="450.5" y="235" font-size="11.5" font-weight="800" fill="#1D1D1D">4.6%</text><text x="168" y="265" font-size="12" fill="#1D1D1D" text-anchor="end">/compare (off)</text><rect x="180" y="250" width="246.3" height="22" rx="3" fill="#cbc8c2"/><text x="433.3" y="265" font-size="11.5" font-weight="800" fill="#1D1D1D">4.3%</text><text x="168" y="295" font-size="12" fill="#1D1D1D" text-anchor="end">/stories/PF (off)</text><rect x="180" y="280" width="240.5" height="22" rx="3" fill="#F36D4E"/><text x="427.5" y="295" font-size="11.5" font-weight="800" fill="#1D1D1D">4.2%</text><text x="168" y="325" font-size="12" fill="#1D1D1D" text-anchor="end">/quiz (off)</text><rect x="180" y="310" width="206.2" height="22" rx="3" fill="#cbc8c2"/><text x="393.2" y="325" font-size="11.5" font-weight="800" fill="#1D1D1D">3.6%</text></svg>
+</div>
+
+<div class="card">
+<h2>9. PDP teardown, page by page</h2>
+<div class="lead">Each page diagnosed at its own funnel stage, with the action tied to the number that justifies it.</div>
+<div class="lp">
+<div class="lp-h"><span class="lp-emoji">GOOD</span><span class="lp-name">/travel</span><span class="tag tg">SCALE / PROTECT</span><span class="conf cf-hi">High on the diagnosis</span></div>
+<div class="lp-sub">ROAS 1.47, AOV $99, $2,142 spend (largest LP)</div>
+<div class="chips"><div class="chip"><div class="cl">CTR</div><div class="cv" style="color:#4d7c0f">5.1%</div></div><div class="chip"><div class="cl">View to cart</div><div class="cv" style="color:#4d7c0f">10.0%</div></div><div class="chip"><div class="cl">Cart to buy</div><div class="cv" style="color:#F36D4E">33%</div></div><div class="chip"><div class="cl">CVR</div><div class="cv" style="color:#4d7c0f">3.28%</div></div></div>
+<div class="ev"><span class="evl">What the data shows</span>Highest CTR (5.1%) and highest view-to-cart rate (10.0%) of any LP. But cart-to-buy is 33% (below the 36% account average) and AOV is $99 (below the $104 average). It is also the fullest page at 5,184 characters with the angle block, the social-proof bar and live purchase popups all present.</div>
+<p class="lp-body"><b>Diagnosis.</b> The hook and the page are not the problem, they are the best on the account. Money is lost after the cart (only 1 in 3 buys) and on order value.</p>
+<div class="lp-fix"><div class="fixlab">Recommended action, with the reason behind it</div><ul><li><b>Apply the Finding A shipping fix here first</b><span class="why">Why: this LP carries the most traffic, so the contradiction costs the most absolute revenue here</span></li><li><b>Add a 2-pack bundle or insole upsell at cart</b><span class="why">Why: CVR is already high at 3.28% yet ROAS is only 1.47, which means revenue per order is the ceiling, not conversion. AOV $99 is near the 1-pair price, so most buyers take a single pair</span></li><li><b>A/B test defaulting to the 2-pair option (do not just switch it)</b><span class="why">Why: it would lift AOV but a higher default price can dent conversion, so it must be measured, not assumed</span></li></ul></div>
+</div><div class="lp">
+<div class="lp-h"><span class="lp-emoji">FIX</span><span class="lp-name">/barefoot</span><span class="tag tb">REBUILD PAGE</span><span class="conf cf-md">Medium to High</span></div>
+<div class="lp-sub">ROAS 1.57, AOV $96, view-to-cart 4.6% (lowest on account)</div>
+<div class="chips"><div class="chip"><div class="cl">CTR</div><div class="cv" style="color:#b45309">3.7%</div></div><div class="chip"><div class="cl">View to cart</div><div class="cv" style="color:#F36D4E">4.6%</div></div><div class="chip"><div class="cl">Cart to buy</div><div class="cv" style="color:#4d7c0f">61%</div></div><div class="chip"><div class="cl">CVR</div><div class="cv" style="color:#b45309">2.78%</div></div></div>
+<div class="ev"><span class="evl">What the data shows</span>View-to-cart is 4.6%, the lowest of all LPs, yet the people who do add convert at 61%, the highest cart-to-buy on the account. Traffic arrives fine (83% of clicks become landing views, CTR 3.7% is normal). The page is the thinnest PDP at 4,341 characters and is missing three blocks Travel has: the social-proof bar, the recent-purchase popups, and an angle-specific 3-reason block.</div>
+<p class="lp-body"><b>Diagnosis.</b> Top of funnel and traffic quality are fine. The leak is the page step from landing to cart. Because qualified buyers convert at 61%, the demand is real, so the constraint is the page failing to push enough visitors to cart.</p>
+<div class="lp-fix"><div class="fixlab">Recommended action, with the reason behind it</div><ul><li><b>Rebuild to the Travel template: add the "52K+ customers / As Seen In" bar, recent-purchase popups, and a barefoot-specific 3-reason block</b><span class="why">Why: Travel has all three and hits 10.0% cart rate, barefoot lacks all three and hits 4.6%. The 61% close rate proves intent is there to capture</span></li><li><b>Treat audience as the alternative cause and confirm with the test</b><span class="why">Why: barefoot-shoe skeptics may be harder to convert, so the page rebuild should be run as a before/after to isolate the page effect from the audience effect</span></li></ul></div>
+</div><div class="lp">
+<div class="lp-h"><span class="lp-emoji">FIX</span><span class="lp-name">/orthotics-exit</span><span class="tag tb">NEW HOOKS</span><span class="conf cf-hi">High</span></div>
+<div class="lp-sub">ROAS 0.95, CTR 2.7% (lowest hook), view-to-cart 8.9% (healthy)</div>
+<div class="chips"><div class="chip"><div class="cl">CTR</div><div class="cv" style="color:#F36D4E">2.7%</div></div><div class="chip"><div class="cl">View to cart</div><div class="cv" style="color:#4d7c0f">8.9%</div></div><div class="chip"><div class="cl">Cart to buy</div><div class="cv" style="color:#F36D4E">32%</div></div><div class="chip"><div class="cl">CVR</div><div class="cv" style="color:#b45309">2.82%</div></div></div>
+<div class="ev"><span class="evl">What the data shows</span>CTR is 2.7%, the lowest hook on the account, while view-to-cart is 8.9%, above the 8.0% average. Hero copy "Ditch the Orthotics. Keep the Relief." is on-angle.</div>
+<p class="lp-body"><b>Diagnosis.</b> The page converts visitors fine. The problem is upstream: clicks are too expensive because the hook is weak, so the (good) page never gets enough cheap traffic to clear breakeven.</p>
+<div class="lp-fix"><div class="fixlab">Recommended action, with the reason behind it</div><ul><li><b>Test new ad hooks for the orthotics angle, do not touch the page</b><span class="why">Why: the page already converts at 8.9%, above average, so rebuilding it would fix nothing. CTR is the floor dragging ROAS to 0.95</span></li><li><b>Point the Orthotics story here (see Finding B)</b><span class="why">Why: the copy is a clean message-match for that audience</span></li></ul></div>
+</div><div class="lp">
+<div class="lp-h"><span class="lp-emoji">WATCH</span><span class="lp-name">/ (Legacy PDP)</span><span class="tag tn">STORY HUB</span><span class="conf cf-hi">High on the facts</span></div>
+<div class="lp-sub">ROAS 1.10 (1.78 last 3 days), AOV $92 (lowest), view-to-cart 9.2%</div>
+<div class="chips"><div class="chip"><div class="cl">CTR</div><div class="cv" style="color:#F36D4E">3.0%</div></div><div class="chip"><div class="cl">View to cart</div><div class="cv" style="color:#4d7c0f">9.2%</div></div><div class="chip"><div class="cl">Cart to buy</div><div class="cv" style="color:#F36D4E">30%</div></div><div class="chip"><div class="cl">CVR</div><div class="cv" style="color:#b45309">2.71%</div></div></div>
+<div class="ev"><span class="evl">What the data shows</span>View-to-cart is a healthy 9.2%, but CTR is low (3.0%) and AOV is the lowest at $92. The page title is literally "VRSN - Premium Product" with a generic hero, and all four Story funnels hand off to this page.</div>
+<p class="lp-body"><b>Diagnosis.</b> A capable page forced to do double duty: convert cold direct traffic and warm advertorial readers with one generic message. It recovered to 1.78 in the last 3 days, so it is not broken.</p>
+<div class="lp-fix"><div class="fixlab">Recommended action, with the reason behind it</div><ul><li><b>Fix the shipping contradiction here too</b><span class="why">Why: it is the destination for every Story, so a fix compounds across the whole advertorial funnel</span></li><li><b>Fix the generic "Premium Product" page title</b><span class="why">Why: it signals an unfinished page and weakens trust and SEO/share previews</span></li><li><b>Longer term, give Stories matched PDPs so this page only serves direct traffic</b><span class="why">Why: one generic message cannot be optimal for four different warm audiences</span></li></ul></div>
+</div>
+</div>
+
+<div class="card">
+<h2>10. Story and advertorial teardown</h2>
+<div class="lead">All four are 24,000 to 25,000-character editorials on the same strong 7-reason template. They differ by angle, and they all share the generic-PDP handoff from Finding B.</div>
+<div class="lp">
+<div class="lp-h"><span class="lp-emoji">GOOD</span><span class="lp-name">/stories/nurse</span><span class="tag tg">SCALE</span><span class="conf cf-hi">High</span></div>
+<div class="lp-sub">ROAS 1.78, last 3 days 3.61, CVR 4.06% (best on account)</div>
+<div class="chips"><div class="chip"><div class="cl">CTR</div><div class="cv" style="color:#b45309">3.2%</div></div><div class="chip"><div class="cl">View to cart</div><div class="cv" style="color:#4d7c0f">8.1%</div></div><div class="chip"><div class="cl">Cart to buy</div><div class="cv" style="color:#4d7c0f">50%</div></div><div class="chip"><div class="cl">CVR</div><div class="cv" style="color:#4d7c0f">4.06%</div></div></div>
+<div class="ev"><span class="evl">What the data shows</span>Best performer on the account. Last 3 days hit 3.61 ROAS, 9.5% CVR, $31 cost per purchase. The page is a 24,000-character editorial with a specific, credible narrative: named competitor shoes, a $895 cost tally, hour-by-hour shift detail.</div>
+<p class="lp-body"><b>Diagnosis.</b> The template works when the angle and audience match. Specificity is doing the work here.</p>
+<div class="lp-fix"><div class="fixlab">Recommended action, with the reason behind it</div><ul><li><b>Scale budget and feed it fresh hooks</b><span class="why">Why: it is the cheapest purchases on the account and still climbing, headroom is the constraint not efficiency</span></li><li><b>Reuse this level of specificity in other angles</b><span class="why">Why: the vague pages convert worse, this one is concrete and wins</span></li><li><b>Still apply the Finding B price and handoff fix</b><span class="why">Why: it currently shows "From $135.00/pair" and routes to the generic PDP like the others</span></li></ul></div>
+</div><div class="lp">
+<div class="lp-h"><span class="lp-emoji">FIX</span><span class="lp-name">/stories/foot-pain</span><span class="tag tb">CUT THE DUD AD</span><span class="conf cf-hi">High</span></div>
+<div class="lp-sub">ROAS 1.01, last 3 days 0.46, drained by one ad</div>
+<div class="chips"><div class="chip"><div class="cl">CTR</div><div class="cv" style="color:#4d7c0f">3.9%</div></div><div class="chip"><div class="cl">View to cart</div><div class="cv" style="color:#b45309">7.5%</div></div><div class="chip"><div class="cl">Cart to buy</div><div class="cv" style="color:#b45309">35%</div></div><div class="chip"><div class="cl">CVR</div><div class="cv" style="color:#b45309">2.64%</div></div></div>
+<div class="ev"><span class="evl">What the data shows</span>The page is the same 25,000-character, 7-reason template that wins as Nurse. Frequency is low and flat (1.13 to 1.09), so it is not overexposure. The real cause is budget concentration: ad "Resignation 028" took 47% of the campaign ($962) at 0.77 ROAS overall, and in the last 3 days took 39% of spend at 0.00 ROAS (zero sales), while sibling ads 033, 026 and 007 run 1.7 ROAS or better.</div>
+<p class="lp-body"><b>Diagnosis.</b> Not creative fatigue and not the page. CBO over-funded one broken ad and starved the working ones, dragging the whole campaign below breakeven.</p>
+<div class="lp-fix"><div class="fixlab">Recommended action, with the reason behind it</div><ul><li><b>Cut or cap "Resignation 028" so budget flows to the 1.7-ROAS siblings</b><span class="why">Why: 028 alone is $962 at 0.77 ROAS and returned 0.00 in the last 3 days, it is the single drag</span></li><li><b>Then add fresh angles into the same proven page</b><span class="why">Why: the page wins as Nurse, so feed it better ads rather than rebuilding it</span></li><li><b>Do not wait, it is below breakeven and still spending</b><span class="why">Why: 0.46 ROAS at $211 cost per purchase in the last 3 days</span></li></ul></div>
+</div><div class="lp">
+<div class="lp-h"><span class="lp-emoji">WATCH</span><span class="lp-name">/stories/orthotics</span><span class="tag tn">RE-ROUTE</span><span class="conf cf-md">Medium (handoff is fact, the lift is a hypothesis)</span></div>
+<div class="lp-sub">ROAS 1.42, AOV $118 (highest), view-to-cart 6.3%</div>
+<div class="chips"><div class="chip"><div class="cl">CTR</div><div class="cv" style="color:#4d7c0f">4.0%</div></div><div class="chip"><div class="cl">View to cart</div><div class="cv" style="color:#F36D4E">6.3%</div></div><div class="chip"><div class="cl">Cart to buy</div><div class="cv" style="color:#b45309">34%</div></div><div class="chip"><div class="cl">CVR</div><div class="cv" style="color:#F36D4E">2.14%</div></div></div>
+<div class="ev"><span class="evl">What the data shows</span>Strong hook (CTR 4.0%) and the highest AOV on the account ($118), but view-to-cart per article view is only 6.3%, below the destination Legacy PDP own cold rate of 9.2%. So readers are lost between the article and the cart, which is exactly where the handoff sits.</div>
+<p class="lp-body"><b>Diagnosis.</b> The angle attracts high-value readers, then the article-to-PDP handoff leaks them before they reach a cart.</p>
+<div class="lp-fix"><div class="fixlab">Recommended action, with the reason behind it</div><ul><li><b>A/B test routing its CTA to /orthotics-exit instead of /</b><span class="why">Why: the destination copy "Ditch the Orthotics" is a clean message-match for this reader. Note this is a test, not a certainty: orthotics-exit cold view-to-cart is 8.9%, just under Legacy 9.2%, so the bet is that message-match lifts a warm reader above the cold baseline</span></li><li><b>Fix the "$135.00/pair" sticky-bar price</b><span class="why">Why: it contradicts the $79 one-pair price and inflates perceived cost at peak intent</span></li></ul></div>
+</div><div class="lp">
+<div class="lp-h"><span class="lp-emoji">OFF</span><span class="lp-name">/stories/plantar-fasciitis</span><span class="tag tn">RELAUNCH CANDIDATE</span><span class="conf cf-md">Medium</span></div>
+<div class="lp-sub">ROAS 1.06, CTR 5.2% (best hook), view-to-cart 4.2%, turned off</div>
+<div class="chips"><div class="chip"><div class="cl">CTR</div><div class="cv" style="color:#4d7c0f">5.2%</div></div><div class="chip"><div class="cl">View to cart</div><div class="cv" style="color:#F36D4E">4.2%</div></div><div class="chip"><div class="cl">Cart to buy</div><div class="cv" style="color:#4d7c0f">50%</div></div><div class="chip"><div class="cl">CVR</div><div class="cv" style="color:#F36D4E">2.12%</div></div></div>
+<div class="ev"><span class="evl">What the data shows</span>Had the best hook on the entire account (CTR 5.2%) and a 50% cart-to-buy, but view-to-cart was only 4.2% into the generic PDP handoff.</div>
+<p class="lp-body"><b>Diagnosis.</b> Not a dead angle. A strong hook leaking at the same handoff that hurts every Story.</p>
+<div class="lp-fix"><div class="fixlab">Recommended action, with the reason behind it</div><ul><li><b>Relaunch as a test once Finding B is fixed and point it at a PF-matched PDP</b><span class="why">Why: the hook is the hardest part to find and it already has the best one, the fixable part is the handoff</span></li></ul></div>
+</div>
+</div>
+
+<div class="card">
+<h2>11. Shared page-level watch-items</h2>
+<div class="lead">Lower-confidence observations that apply to every page. These are judgment calls, not proven leaks, so treat them as before/after tests rather than certain fixes.</div>
+<ul class="clean">
+<li><b>Static social proof looks identical across pages.</b> Every PDP shows the same "192 sold today" and "37 to 45 viewing" plus "sold out 7 times last year". Repeated, unchanging numbers can read as fake to returning or savvy shoppers and risk the trust they are meant to build. Consider making them dynamic or toning them down. <i>Confidence: low.</i></li>
+<li><b>Two separate countdown timers per page.</b> A top-bar timer and a product timer show different values. Duplicated urgency can feel manufactured. Consider a single consistent timer. <i>Confidence: low.</i></li>
+<li><b>Variant defaults to Women, 1 pair, White.</b> Good that a variant is pre-selected, but defaulting to 1 pair while the page pushes 2 pairs as "Best Value" is worth an A/B test against a 2-pair default for AOV. <i>Confidence: medium.</i></li>
+</ul>
+</div>
+
+<div class="card">
+<h2>12. Killed pages, confirm dead vs fixable</h2>
+<ul class="clean">
+<li><b>/quiz, ROAS 0.53 (off):</b> broken at two stages (CTR 3.0% and view to cart 3.6%). The quiz adds friction without payoff. Stay off. If ever revisited, it should pre-load a recommended product into the cart at the end rather than just reveal a result.</li>
+<li><b>/compare, ROAS 0.00, 0 purchases on $302 (off):</b> 117 landing views, 5 carts, zero sales. Dead. Stay off.</li>
+</ul>
+</div>
+
+<div class="card" style="background:#faf9f7">
+<h2>Method and caveats</h2>
+<ul class="clean" style="font-size:13px">
+<li>Metrics from the Meta daily ad-level export, 1 to 10 June 2026, aggregated so campaign equals landing page.</li>
+<li>Page content read live from the rendered pages of all 10 LPs on 11 June.</li>
+<li>"Page weight" (character count) is a proxy for which persuasion blocks are present. A screenshot pass would confirm visual hierarchy and above-the-fold.</li>
+<li>Cart-to-buy happens in Shopify checkout, which is not visible from the LP. The shipping contradiction is the most visible suspect but a checkout walkthrough would confirm.</li>
+<li>Brand fonts: body set in Figtree (brand). Headlines use Archivo as a stand-in for Silka, which is a licensed font not available here.</li>
+<li>Ad frequency was checked across all campaigns (1.0 to 1.3), so overexposure fatigue is ruled out as a cause.</li>
+<li>New-site TOF relaunch test excluded from all analysis per request.</li>
+</ul>
+</div>
+
+<div class="card" style="border:2px solid #B8DE55">
+<h2>Proposed action plan</h2>
+<div class="lead">The priorities, ordered by impact against the numbers. Full evidence for each item is in the sections above.</div>
+<table class="prio">
+<tr><th></th><th>Action</th><th>Effort</th><th>The number that justifies it</th></tr>
+<tr><td>1</td><td class="d">Fix the "2-3 week" vs "5-8 day" shipping contradiction on all PDPs</td><td><span class="eff e-lo">10 min</span></td><td>64% cart abandonment, this is the most visible trust break, touches every PDP</td></tr>
+<tr><td>2</td><td class="d">A/B route each Story CTA to its matched PDP, fix the "$135/pair" display</td><td><span class="eff e-lo">Low</span></td><td>Story article-to-cart 6.3% vs the destination PDP own 9.2%, leak is at the handoff</td></tr>
+<tr><td>3</td><td class="d">Rebuild /barefoot to the Travel template</td><td><span class="eff e-md">Med</span></td><td>Lowest cart rate (4.6%) but highest close (61%), demand is there to capture</td></tr>
+<tr><td>4</td><td class="d">Cut or cap the Foot Pain "Resignation 028" ad, let budget flow to the siblings</td><td><span class="eff e-lo">Low</span></td><td>028 took 39% of last-3-day spend at 0.00 ROAS while siblings 033 and 026 run 1.7+, the page itself is fine</td></tr>
+<tr><td>5</td><td class="d">Scale /stories/nurse, test fresh hooks for /orthotics-exit</td><td><span class="eff e-lo">Low</span></td><td>Nurse 3.61 last-3-day ROAS, orthotics-exit page converts at 8.9% but CTR is 2.7%</td></tr>
+<tr><td>6</td><td class="d">Bundle or upsell, and test default-to-2-pair on /travel and Legacy</td><td><span class="eff e-md">Med</span></td><td>High CVR (3.28%) but low AOV ($92 to $99), order value is the ROAS ceiling</td></tr>
+<tr><td>7</td><td class="d">Fix the initiate-checkout pixel</td><td><span class="eff e-md">Med</span></td><td>77 checkouts vs 168 purchases is impossible, it blinds the mid funnel</td></tr>
+</table>
+</div>
+
+<div class="foot">VRSN Funnel Deep Dive. Generated 11 June 2026. [vrsn] Meta account plus live LP audit.</div>
+</div></body></html>
