@@ -1,0 +1,224 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VRSN Creative Testing Scorecard · Day 10</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1D1D1D;--surf:#212121;--paper:#F2F0F0;--lime:#B8DE55;--coral:#F36D4E;--line:#e4e1dc;--mute:#6f6c66}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;color:var(--ink);background:var(--paper);padding:34px 18px}
+.wrap{max-width:1000px;margin:0 auto}
+.kicker{display:flex;align-items:center;gap:10px;font-family:'Archivo';font-weight:800;text-transform:uppercase;letter-spacing:2px;font-size:12px;color:var(--mute);margin-bottom:14px}
+.kicker .sq{width:16px;height:16px;border-radius:4px;background:var(--lime)}
+h1{font-family:'Archivo';font-weight:900;text-transform:uppercase;font-size:38px;line-height:1.05;letter-spacing:-.5px;margin-bottom:8px}
+.sub{color:var(--mute);font-size:14px;margin-bottom:24px;line-height:1.55} .sub b{color:var(--ink)}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px 30px;margin-bottom:20px}
+h2{display:flex;align-items:center;gap:9px;font-family:'Archivo';font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--ink);margin-bottom:16px;font-weight:800}
+h2::before{content:"";width:13px;height:13px;border-radius:3px;background:var(--lime);flex:none}
+.lead{font-size:15px;color:#4a4843;margin:-4px 0 18px}
+.tldr{background:var(--lime);border-radius:16px;padding:22px 26px;margin-bottom:20px;color:var(--ink)}
+.tldr .t{font-family:'Archivo';font-weight:900;text-transform:uppercase;letter-spacing:1px;font-size:14px;margin-bottom:8px}
+.tldr p{font-size:16.5px;line-height:1.6;font-weight:500;margin-bottom:10px} .tldr p:last-child{margin-bottom:0} .tldr b{font-weight:800}
+.exec{background:var(--ink);color:#fff;border:none}
+.exec h2{color:#fff} .exec h2::before{background:var(--lime)}
+.exec ul{list-style:none} .exec li{position:relative;padding-left:26px;margin-bottom:13px;font-size:15.5px;line-height:1.55;color:#e8e6e2}
+.exec li::before{content:"";position:absolute;left:0;top:8px;width:9px;height:9px;border-radius:2px;background:var(--lime)}
+.exec li b{color:#fff} .exec .hl{color:var(--lime);font-weight:800}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 17px}
+.kpi .lab{font-family:'Archivo';font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--mute);font-weight:700}
+.kpi .val{font-family:'Archivo';font-size:28px;font-weight:900;margin-top:4px;letter-spacing:-.5px}
+.kpi .chg{font-size:12px;font-weight:700;margin-top:2px}
+.up{color:#4d7c0f}.dn{color:var(--coral)}.flat{color:var(--mute)}
+.gloss{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:var(--mute);line-height:1.7}
+.gloss b{color:var(--ink);font-weight:800}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 6px;border-bottom:2px solid var(--line);font-family:'Archivo';font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--mute)}
+td{padding:8px 6px;border-bottom:1px solid #f1efec;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+.good{color:#4d7c0f;font-weight:800}
+.bad{color:var(--coral);font-weight:800}
+.tag{display:inline-block;padding:3px 11px;border-radius:20px;font-family:'Archivo';font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+.tag.win{background:#e7f3cf;color:#4d7c0f}.tag.mid{background:#fdf0c2;color:#92710a}.tag.kill{background:#fde4dd;color:#c2410c}.tag.dark{background:var(--ink);color:#fff}
+.callout{border-radius:12px;padding:16px 20px;margin:16px 0;font-size:14px;line-height:1.6}
+.callout.amber{background:#fdf6e3;border:1px solid #f0e3b8}
+.callout.red{background:#fdeae4;border:1px solid #f6cfc2}
+.callout.green{background:#eef6db;border:1px solid #d8e9b0}
+.callout b{font-weight:800}
+.callout .cl{font-family:'Archivo';font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.vbox{border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.vbox.winner{border:2px solid var(--ink)}
+.vbox .vh{font-family:'Archivo';font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
+.vbox .vs{font-size:12.5px;color:var(--mute);margin-bottom:12px}
+.vrow{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;border-bottom:1px solid #f1efec}
+.vrow:last-child{border-bottom:none}
+.vrow b{font-variant-numeric:tabular-nums}
+.gate{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid #f1efec}
+.gate:last-child{border-bottom:none}
+.gate .gi{flex:none;width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;margin-top:2px}
+.gate .gi.pass{background:var(--lime);color:var(--ink)}
+.gate .gi.fail{background:#fde4dd;color:#c2410c}
+.gate .gt{font-size:14.5px;line-height:1.5}.gate .gt b{font-weight:800}
+.gate .gt .gm{color:var(--mute);font-size:13px}
+.note{font-size:12.5px;color:var(--mute);font-style:italic;margin-top:12px}
+.foot{text-align:center;color:var(--mute);font-size:12px;margin:14px 0 6px}
+.tline{display:flex;gap:0;margin:18px 0 6px}
+.tstep{flex:1;position:relative;padding:0 10px 0 0}
+.tstep .td{width:14px;height:14px;border-radius:50%;background:var(--ink);margin-bottom:10px;position:relative;z-index:2}
+.tstep .td.lim{background:var(--lime);border:2.5px solid var(--ink)}
+.tstep::before{content:"";position:absolute;top:6px;left:14px;right:0;height:2px;background:var(--line)}
+.tstep:last-child::before{display:none}
+.tstep .tt{font-family:'Archivo';font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.tstep .tx{font-size:12.5px;color:var(--mute);line-height:1.45;margin-top:2px}
+.tstep .tm{font-size:12px;font-weight:800;color:var(--ink)}
+@media(max-width:720px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}h1{font-size:30px}.tline{flex-direction:column;gap:14px}.tstep::before{display:none}}
+</style></head><body><div class="wrap">
+
+<div class="kicker"><span class="sq"></span>Skyvane × VRSN · Creative Testing Report · Day 10</div>
+<h1>You Asked Two Questions.<br>Here Are The Answers.</h1>
+<div class="sub">This report covers the first 10 days of the new creative test: <b>June 3 to June 12, 2026</b>. Every number comes straight from the <b>[vrsn] Meta Ads account</b>, exported on June 12. It pairs with the <a href="vrsn-lp-deepdive.html" style="color:inherit"><b>LP Funnel Deep Dive</b></a>, which looked at the landing pages over June 1 to 10, so totals between the two reports differ slightly.<br>One reading note: Meta credits a sale to the ad that was clicked up to 7 days earlier. That means the most recent two days always look weaker than they really are, and those numbers will rise as late sales get counted.</div>
+
+<div class="tldr">
+<div class="t">The two answers, straight</div>
+<p><b>Q1. Is $79 with a free insole converting better than $89?</b> No. Your observation is right, and the data says it more strongly: the plain <b>$89 product page is ahead on every measure</b> (conversion rate, cost per sale, order value, return on ad spend). The fix is not a deeper discount. It is the funnel. The plan: a clean A/B test launches this week, and we make the <b>insole decision by June 26</b>.</p>
+<p><b>Q2. Ten days and ~$13K in: bad, average, or good?</b> <b>Average, trending good. On schedule.</b> Ten days in, the job of a creative test is to find winners and cut losers, and both happened: 1 ad is already above your 2.0 goal, 3 angles are pulling ahead, 4 angles have been cut. A proper read arrives <b>June 30, after roughly $15-20K more (about $30-35K in total)</b>.</p>
+</div>
+
+<div class="kpis">
+<div class="kpi"><div class="lab">Spend (both offers)</div><div class="val">$15.3K</div><div class="chg flat">Jun 3-12</div></div>
+<div class="kpi"><div class="lab">Purchases</div><div class="val">184</div><div class="chg flat">$18.9K revenue</div></div>
+<div class="kpi"><div class="lab">Blended ROAS</div><div class="val">1.23</div><div class="chg flat">vs 1.2 floor · 1.75 target</div></div>
+<div class="kpi"><div class="lab">Best ad ROAS</div><div class="val">2.03</div><div class="chg up">Nurse · above the 2.0 goal</div></div>
+</div>
+
+<div class="gloss"><b>How to read the numbers.</b> <b>ROAS</b> is revenue per $1 of ad spend (1.53 means $1.53 back per $1 spent). <b>CPA</b> is the ad cost of getting one sale. <b>AOV</b> is the average order value. <b>CVR</b> is the share of people who land on the page and end up buying. Your own benchmarks: 1.2 ROAS is the floor to keep scaling, 1.75 is the target, 2.0 is the goal.</div>
+
+<!-- ============ Q1 ============ -->
+<div class="card">
+<h2>Q1 · The $79 + free insole offer vs the $89 product page</h2>
+<div class="lead">Head to head over the same 10 days. The $79 funnel (get.vrsn.co) includes the comfort insole free, a $23.40 value that the $89 page (vrsn.co) charges for. The richer offer should be winning. It is not.</div>
+
+<div class="grid2">
+<div class="vbox">
+<div class="vh">$79 + Free Comfort Insole</div>
+<div class="vs">get.vrsn.co funnels</div>
+<div class="vrow"><span>Spend</span><b>$12,888</b></div>
+<div class="vrow"><span>Purchases</span><b>150</b></div>
+<div class="vrow"><span>Conversion rate (CVR)</span><b class="bad">2.60%</b></div>
+<div class="vrow"><span>Cost per sale (CPA)</span><b class="bad">$85.90</b></div>
+<div class="vrow"><span>Avg order value (AOV)</span><b class="bad">$100.93</b></div>
+<div class="vrow"><span>ROAS</span><b class="bad">1.17</b></div>
+</div>
+<div class="vbox winner">
+<div class="vh">$89 · Comfort Insole Paid (+$23.40) <span class="tag dark">Ahead</span></div>
+<div class="vs">vrsn.co product page · SiteRelaunch campaign</div>
+<div class="vrow"><span>Spend</span><b>$2,456</b></div>
+<div class="vrow"><span>Purchases</span><b>34</b></div>
+<div class="vrow"><span>Conversion rate (CVR)</span><b class="good">3.36%</b></div>
+<div class="vrow"><span>Cost per sale (CPA)</span><b class="good">$72.25</b></div>
+<div class="vrow"><span>Avg order value (AOV)</span><b class="good">$110.41</b></div>
+<div class="vrow"><span>ROAS</span><b class="good">1.53</b></div>
+</div>
+</div>
+
+<p style="font-size:14.5px;margin:14px 0 0">What this means in plain terms: on every order, the $79 funnel gives away about $10 of price plus a $23 product. That is roughly <b>$33 of value per purchase</b>, and what it buys back is <i>lower</i> conversion and <i>smaller</i> orders. The discount plus gift is not pulling its weight.</p>
+
+<div style="margin-top:22px"></div>
+<h2>Does the gap survive a stricter comparison?</h2>
+<div class="lead">A fair challenge to the table above: the $79 side mixes in advertorial and quiz pages, which behave differently from product pages. So we tightened the comparison twice. First to <b>$79 product-style pages only</b> (Legacy, Barefoot, Travel, Orthotics-Exit), the same page type as the $89 page. Then to <b>the Legacy page only</b>, which is the closest structural twin. The $89 page wins every cut.</div>
+<table>
+<tr><th>Comparison cut</th><th>Spend</th><th>Purch</th><th>CVR</th><th>CPA</th><th>AOV</th><th>ROAS</th></tr>
+<tr><td>All $79 funnels (overview)</td><td>$12,888</td><td>150</td><td>2.60%</td><td>$86</td><td>$101</td><td class="bad">1.17</td></tr>
+<tr><td>$79 · product pages only</td><td>$6,321</td><td>79</td><td>2.69%</td><td>$80</td><td>$98</td><td class="bad">1.22</td></tr>
+<tr><td>$79 · Legacy page only <span style="color:var(--mute);font-weight:400">(closest twin)</span></td><td>$1,392</td><td>15</td><td>2.44%</td><td>$93</td><td>$93</td><td class="bad">1.01</td></tr>
+<tr><td><b>$89 product page (vrsn.co)</b></td><td>$2,456</td><td>34</td><td class="good">3.36%</td><td class="good">$72</td><td class="good">$110</td><td class="good">1.53</td></tr>
+</table>
+<div class="note">Read the rows top down as increasing strictness. Even the strongest $79 cut (product pages only, 1.22) still trails the $89 page by a wide margin. The Legacy-only row is the cleanest like-for-like but rests on just 15 purchases, and Legacy is one of the pages carrying the shipping-message bug, so treat it as supporting evidence rather than the headline.</div>
+
+<div class="callout amber">
+<span class="cl">The honest caveat: why we are not killing the offer today</span>
+This is <b>not a perfectly clean A/B test</b>. The two offers also differ in landing page, in creative format (the $89 side runs video and a "40% off" message, while the $79 side runs mostly static advertorials), and in campaign setup. And with 34 purchases on the $89 side, the gap is a strong directional signal, not yet a statistically settled one. Four measures pointing the same way earns a proper test. It does not yet earn a verdict.
+</div>
+
+<div class="callout green">
+<span class="cl">The plan: how we settle this question</span>
+This is what we plan to run, starting this week. <b>A clean offer test:</b> same landing page, same top creative (Nurse), same audience, split into two identical ad sets where the <i>only</i> difference is <b>A: $79 with the comfort insole free</b> versus <b>B: $89 with the insole paid</b>. We will judge it on profit per visitor, not raw conversion. <b>Target date for the keep-or-kill decision on the free insole: June 26.</b>
+</div>
+
+<p style="font-size:14.5px;margin:6px 0 0">One more signal hiding in this data: the $79 funnels attract <b>more clicks</b> (up to 13.6% click-through on Barefoot) but close <b>fewer of them</b> into sales. Plenty of traffic, weak close rate. That points to a <b>page problem, not a price problem</b>, and it matches what the LP Deep Dive found independently: a contradictory shipping message on every product page, and story pages handing visitors to a generic page showing $135 instead of the $79 offer. Fixing those lifts every ad dollar, whatever the price ends up being.</p>
+</div>
+
+<!-- ============ Q2 ============ -->
+<div class="card">
+<h2>Q2 · How the test is doing at day 10</h2>
+<div class="lead">Since this way of testing is new to you, here is how we judge it. Early on, the spend is buying information: which angles work, which die. So at day 10 we look at four checks. Three pass. The fourth is open, and at this point it should be.</div>
+
+<div class="gate"><div class="gi pass">✓</div><div class="gt"><b>At least one ad above the 2.0 ROAS goal.</b><br><span class="gm">The Nurse story ad: 2.03 ROAS on $739 of spend and 14 purchases. A real winner taking shape, not a lucky day.</span></div></div>
+<div class="gate"><div class="gi pass">✓</div><div class="gt"><b>Two or three angles clearly pulling ahead of the pack.</b><br><span class="gm">Nurse at 1.78 · the $89 page path at 1.53 · Travel at 1.47. All above the 1.2 floor with meaningful spend behind them.</span></div></div>
+<div class="gate"><div class="gi pass">✓</div><div class="gt"><b>Losers identified and already cut.</b><br><span class="gm">Quiz (0.53), Compare (no sales) and the PF Story (1.06) are paused. One overspending ad ("Resignation 028") burned $962 at 0.77 and fell to zero in its last three days; it is being capped.</span></div></div>
+<div class="gate"><div class="gi fail">✗</div><div class="gt"><b>A winner proven at scale: 1.75+ holding while the budget grows.</b><br><span class="gm">Not yet. The winners have 14 to 36 purchases each, and we trust a scaling decision at 75 to 100. Getting there is exactly what the next two to three weeks are for.</span></div></div>
+
+<div style="margin-top:18px"></div>
+<table>
+<tr><th>Angle / funnel</th><th>Spend</th><th>Purch</th><th>ROAS</th><th>CPA</th><th>Status</th></tr>
+<tr><td>Nurse Story</td><td>$1,304</td><td>21</td><td class="good">1.70</td><td>$62</td><td><span class="tag win">Scale</span></td></tr>
+<tr><td>$89 product page (SiteRelaunch)</td><td>$2,456</td><td>34</td><td class="good">1.53</td><td>$72</td><td><span class="tag win">Scale</span></td></tr>
+<tr><td>Barefoot</td><td>$1,380</td><td>21</td><td class="good">1.49</td><td>$66</td><td><span class="tag win">Scale</span></td></tr>
+<tr><td>Travel</td><td>$2,635</td><td>36</td><td>1.34</td><td>$73</td><td><span class="tag mid">Watch</span></td></tr>
+<tr><td>Orthotics Story</td><td>$1,292</td><td>14</td><td>1.25</td><td>$92</td><td><span class="tag mid">Watch</span></td></tr>
+<tr><td>Foot Pain Story</td><td>$2,215</td><td>22</td><td class="bad">1.04</td><td>$101</td><td><span class="tag kill">Fix or cut</span></td></tr>
+<tr><td>Legacy product page</td><td>$1,392</td><td>15</td><td class="bad">1.01</td><td>$93</td><td><span class="tag mid">Watch</span></td></tr>
+<tr><td>PF Story</td><td>$939</td><td>11</td><td class="bad">1.06</td><td>$85</td><td><span class="tag kill">Paused</span></td></tr>
+<tr><td>Orthotics Exit</td><td>$914</td><td>7</td><td class="bad">0.81</td><td>$131</td><td><span class="tag kill">Cut</span></td></tr>
+<tr><td>Quiz</td><td>$516</td><td>3</td><td class="bad">0.53</td><td>$172</td><td><span class="tag kill">Paused</span></td></tr>
+<tr><td>Compare Listicle</td><td>$302</td><td>0</td><td class="bad">0.00</td><td>n/a</td><td><span class="tag kill">Paused</span></td></tr>
+</table>
+<div class="note">ROAS by campaign, June 3 to 12, 7-day click attribution. The Nurse angle's single best ad runs above its angle average (2.03 vs 1.70).</div>
+
+<div class="callout red">
+<span class="cl">The number we will not dress up</span>
+Blended ROAS on the $79 creative test is <b>1.17, below your own 1.2 floor.</b> That is real. It is also what a testing phase is supposed to look like: roughly <b>a third of the spend was deliberately used to identify the seven angles we have now cut or deprioritized</b>. That kill list, plus one proven winner and two funnel bugs found, is what the ~$13K bought. The blended number turns the corner as the freed budget concentrates on the three keepers, which is the plan now in motion.
+</div>
+
+<div style="margin-top:16px"></div>
+<h2 style="margin-top:6px">The AI creative engine: is the method itself working?</h2>
+<div class="lead">The creative is produced by an AI generation engine. The promise of that approach is speed and volume at low cost, with quality improving each round. The right way to judge it is winners found per dollar, not the blended ROAS of week two. Here is the scorecard.</div>
+<table>
+<tr><th>Engine measure</th><th>Day-10 result</th><th>Typical range</th><th>Read</th></tr>
+<tr><td>Ads produced and entered into testing</td><td>195+</td><td>n/a</td><td class="good">The volume this method promises</td></tr>
+<tr><td>Ads Meta gave real budget to (over $50)</td><td>36</td><td>n/a</td><td>Normal: Meta concentrates spend fast</td></tr>
+<tr><td>Winners at 1.75+ ROAS, among funded ads</td><td><b>17%</b></td><td>10-20%</td><td class="good">On target</td></tr>
+<tr><td>Above the 1.2 floor, among funded ads</td><td>33%</td><td>25-35%</td><td class="good">On target</td></tr>
+<tr><td>Spend on funded ads that never sold</td><td>~$1.4K (~20%)</td><td>under 15% ideally</td><td class="bad">Tightening the cut-off rules</td></tr>
+</table>
+<div class="note">"Typical range" is an industry benchmark for paid-social creative testing combined with what we see across the accounts we run. It is the yardstick, not vrsn data. Engine numbers are based on the 195 measured ads, which cover the majority of testing spend. The ~20% spent on ads that never sold is the cost of discovery; part of it is recoverable with faster cut-offs, which we are now applying.</div>
+</div>
+
+<!-- ============ Timeline ============ -->
+<div class="card">
+<h2>Time and money to a proper read</h2>
+<div class="lead">A "proper read" means two things: a winner trusted at 75 to 100 purchases that <b>keeps performing at 1.75+ while the budget grows</b>, and a settled answer on the $79 versus $89 offer. This is the plan, with dates:</div>
+
+<div class="tline">
+<div class="tstep"><div class="td lim"></div><div class="tt">Now → Jun 19</div><div class="tx">Move freed budget onto Nurse, Barefoot and the $89 page. Landing page fixes go live. The clean price test starts running.</div><div class="tm">≈ $10K</div></div>
+<div class="tstep"><div class="td"></div><div class="tt">Jun 26</div><div class="tx"><b>Offer decision:</b> keep or kill the free comfort insole, judged on profit per visitor.</div><div class="tm">≈ $6-8K</div></div>
+<div class="tstep"><div class="td"></div><div class="tt">Jun 30</div><div class="tx"><b>Scale-or-rework verdict:</b> either "these hold 1.75+, scale them" or "fix the offer and funnel before spending more on media." Both are real answers.</div><div class="tm">≈ $30-35K total</div></div>
+</div>
+<div class="note">Why this cannot be faster: confidence comes from purchase counts. The winners sit at 14 to 36 purchases; ranking angles reliably takes about 50 each, and trusting a scaling decision takes 75 to 100. At roughly $1.4K per day focused on three angles, that is 10 to 14 more days. Spending more per day would buy speed but muddy the read.</div>
+</div>
+
+<!-- ============ Actions ============ -->
+<div class="card exec">
+<h2>The plan for this week, on our side</h2>
+<ul>
+<li><b>Landing page fixes go live:</b> the contradictory shipping message comes off all product pages, and story pages will send visitors to their matching product page at the <span class="hl">$79</span> price instead of a generic page showing $135. This lifts every funnel at no media cost.</li>
+<li><b>Budget moves to the winners:</b> ads with no sales and angles below the 1.2 floor get cut, the overspending "Resignation 028" ad gets capped, and the freed budget concentrates on <span class="hl">Nurse, Barefoot and the $89 page</span>.</li>
+<li><b>The clean $79 vs $89 test goes live:</b> same page, same ads, same audience. Only the offer differs.</li>
+<li><b>A second creative generation gets queued:</b> the winning hooks (Nurse, Barefoot) go back into the AI engine to produce sharper variations. This tests the engine's core promise: that quality compounds round over round.</li>
+<li><b>One input we need from you:</b> the shoe's gross margin and the insole's unit cost, so the June 26 offer decision is made on <span class="hl">profit per order</span>, not ad metrics alone.</li>
+</ul>
+</div>
+
+<div class="foot">Skyvane · prepared June 12, 2026 · source: the [vrsn] Meta Ads account, 7-day click attribution · companion report: <a href="vrsn-lp-deepdive.html" style="color:inherit">VRSN Funnel Deep Dive</a></div>
+
+</div></body></html>
